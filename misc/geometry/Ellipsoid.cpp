@@ -1,0 +1,46 @@
+#include <iostream>
+
+//#include <gsl/gsl_sf_ellint.h>
+
+#include <Eigen/Dense>
+
+#include "Ellipsoid.h"
+
+
+Ellipsoid::Ellipsoid(const Matrix3x3 &j) {
+  Eigen::Matrix3d matrix;
+  matrix << j.xx(), j.xy(), j.xz(), j.yx(), j.yy(), j.yz(), j.zx(), j.zy(), j.zz();
+//  std::cout << matrix << std::endl;
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigensolver(matrix);
+  auto &ev = eigensolver.eigenvalues();
+  _ev0=ev(2);
+  _ev1=ev(1);
+  _ev2=ev(0);
+  _volume = exp(0.2*log(2000*M_PI*M_PI/9.0*_ev0*_ev1*_ev2));
+  _a = sqrt(5*_ev0/_volume);
+  _b = sqrt(5*_ev1/_volume);
+  _c = sqrt(5*_ev2/_volume);
+  
+//  std::cout << "ellipsoid volume: " << _volume << std::endl;
+//  std::cout << 0.2*_volume*_a*_a << " " << _ev0 << std::endl;
+//  std::cout << 0.2*_volume*_b*_b << " " << _ev1 << std::endl;
+//  std::cout << 0.2*_volume*_c*_c << " " << _ev2 << std::endl;
+}
+
+//double Ellipsoid::surface() const {
+//  const double CosPhi = _c/_a;
+//  const double Phi = acos(CosPhi);
+//  const double SinPhi = sin(Phi);
+//  const double K = (_a/_b)*sqrt((_b*_b-_c*_c)/(_a*_a-_c*_c));
+//  const double F = gsl_sf_ellint_F(Phi, K, GSL_PREC_DOUBLE);
+//  const double E = gsl_sf_ellint_E(Phi, K, GSL_PREC_DOUBLE);
+//  return 2*M_PI*(_c*_c + _a*_b*(E*SinPhi + F*CosPhi*CosPhi/SinPhi));
+//}
+
+double Ellipsoid::surfaceApproximation() const {
+  const double P = 1.6075;
+  const double Ap = exp(P*log(_a));
+  const double Bp = exp(P*log(_b));
+  const double Cp = exp(P*log(_c));
+  return 4*M_PI*exp(log( (Ap*Bp + Ap*Cp + Bp*Cp)/3.0 )/P);
+}
