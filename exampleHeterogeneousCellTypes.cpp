@@ -197,6 +197,12 @@ int main(int argc, char** argv) {
         cellType->SetNumberOfTuples(nCells);
         cellType->SetName("cellType");
 
+        // cell position (center)
+        vtkSmartPointer<vtkDoubleArray> cellPosition = vtkSmartPointer<vtkDoubleArray>::New();
+        cellPosition->SetNumberOfComponents(3);
+        cellPosition->SetNumberOfTuples(nCells);
+        cellPosition->SetName("cellPosition");
+
          // cell volume
         vtkSmartPointer<vtkDoubleArray> cellVolume = vtkSmartPointer<vtkDoubleArray>::New();
         cellVolume->SetNumberOfComponents(1);
@@ -214,6 +220,21 @@ int main(int argc, char** argv) {
         cellEnergy->SetNumberOfComponents(1);
         cellEnergy->SetNumberOfTuples(nCells);
         cellEnergy->SetName("cellEnergy");
+
+        // cell periodicity
+        // +1 indicates over positive side once; -1 indicates over negative side once
+        vtkSmartPointer<vtkDoubleArray> cellPeriodicity = vtkSmartPointer<vtkDoubleArray>::New();
+        cellPeriodicity->SetNumberOfComponents(3);
+        cellPeriodicity->SetNumberOfTuples(nCells);
+        cellPeriodicity->SetName("cellPeriodicity");
+
+        // cell neighbors
+        // When numberOfFacesOfCell exceeds maxNeighbors, the cellNeighbor vtkDataArray
+        // becomes invalid.
+        vtkSmartPointer<vtkIntArray> cellNeighbor = vtkSmartPointer<vtkIntArray>::New();
+        cellNeighbor->SetNumberOfComponents(maxNeighbors);
+        cellNeighbor->SetNumberOfTuples(nCells);
+        cellNeighbor->SetName("cellNeighbor");
 
         // create map from Cell* to integer
         std::unordered_map<Cell*, unsigned int> cellToIndex;
@@ -287,22 +308,43 @@ int main(int argc, char** argv) {
           // add cell to unstructure grid
           uGrid->InsertNextCell(VTK_POLYHEDRON,vtkFaces);
 
-          // add attributes to cell
+          // add scalar attributes to cell
           cellID->InsertValue(cellCounter, cellCounter);
           cellType->InsertValue(cellCounter, cellTypeInt);
           cellVolume->InsertValue(cellCounter, c->volume());
           cellSurfArea->InsertValue(cellCounter, c->surface());
           cellEnergy->InsertValue(cellCounter, c->energy());
 
+          // add cell vector data to vtk unstructured grid
+          // first store values in tempVec then add to vtk object
+          double tempVec[3];
+
+          tempVec[0] = c->position().x();
+          tempVec[1] = c->position().y();
+          tempVec[2] = c->position().z();
+          cellPosition->InsertTuple(cellCounter, tempVec);
+
+          tempVec[0] = c->periodicity().x;
+          tempVec[1] = c->periodicity().y;
+          tempVec[2] = c->periodicity().z;
+          cellPeriodicity->InsertTuple(cellCounter, tempVec);
+
+          // add neighbor array
+          cellNeighbor->InsertTupleValue(cellCounter,neighborIndices);
+
+          // update cell counter
           cellCounter++;
         }// end cell loop
 
         // add cell data to vtk unstructured grid
         uGrid->GetCellData()->AddArray(cellID);
         uGrid->GetCellData()->AddArray(cellType);
+        uGrid->GetCellData()->AddArray(cellPosition);
         uGrid->GetCellData()->AddArray(cellVolume);
         uGrid->GetCellData()->AddArray(cellSurfArea);
         uGrid->GetCellData()->AddArray(cellEnergy);
+        uGrid->GetCellData()->AddArray(cellPeriodicity);
+        uGrid->GetCellData()->AddArray(cellNeighbor);
 
         // add time stamp to vtk unstructured grid
         vtkTimeArray->InsertValue(0,t.time());
