@@ -33,6 +33,20 @@ else()
   add_definitions(-DUSE_NETCDF=0)
 endif()
 
+find_package(VTK COMPONENTS
+  vtkCommonColor
+  vtkCommonCore
+  vtkCommonDataModel
+  vtkIOXML
+  vtkInteractionStyle
+  vtkRenderingCore
+  vtkRenderingFreeType)
+if (NOT VTK_FOUND)
+  message("VTK library not found")
+  return ()
+endif()
+message (STATUS "VTK_VERSION: ${VTK_VERSION}")
+include(${VTK_USE_FILE})
 
 ### includes
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${EIGEN3_INCLUDE_DIR} ${NETCDF_INCLUDE_DIRS})
@@ -47,8 +61,8 @@ add_subdirectory(spheres)
 
 
 ### executables
-add_executable(exampleHeterogeneousCellTypes exampleHeterogeneousCellTypes.cpp)
-target_link_libraries(exampleHeterogeneousCellTypes core povray)
+add_executable(exampleHeterogeneousCellTypes.exe exampleHeterogeneousCellTypes.cpp)
+target_link_libraries(exampleHeterogeneousCellTypes.exe core povray ${VTK_LIBRARIES} -lstdc++fs)
 
-add_executable(exampleEnergyMinimization exampleEnergyMinimization.cpp)
-target_link_libraries(exampleEnergyMinimization core miscMinimization)
+add_executable(exampleEnergyMinimization.exe exampleEnergyMinimization.cpp)
+target_link_libraries(exampleEnergyMinimization.exe core miscMinimization)
