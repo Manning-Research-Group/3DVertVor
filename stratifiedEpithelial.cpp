@@ -5,10 +5,6 @@
 #include "core/Cell-inline.h"
 #include "core/VertexOfCell-inline.h"
 
-#include "misc/other/MovieCreator.h"
-#include "misc/geometry/Ellipsoid.h"
-#include "misc/geometry/EllipsoidByUnitPointMassPolyhedron.h"
-
 #include "voro++/cell.hh"
 #include "voro++/voro++.hh"
 
@@ -75,37 +71,65 @@ int main(int argc, char** argv) {
   // ------------------------------------------
 
   const int TotalCells = 512;
-  const int NumberOfCellsType1 = 256;
-  const int NumberOfCellsType2 = 256;
+  //const int NumberOfCellsType1 = 2*TotalCells/8;
+  //const int NumberOfCellsType2 = 1*TotalCells/8;
+  //const int NumberOfCellsType3 = 5*TotalCells/8;
+
+  //const int NumberOfCellsType1 = 2*TotalCells/8;
+  //const int NumberOfCellsType2 = 2*TotalCells/8;
+  //const int NumberOfCellsType3 = 4*TotalCells/8;
+
+  const int NumberOfCellsType1 = 127;
+  const int NumberOfCellsType2 = 68;
+  const int NumberOfCellsType3 = 317;
+
   //const int SimulationsSteps = 5e6;
-  //const int MovieFrameEachNSteps = 100000;
-  //const int SimulationsSteps = 1e5;
-  //const int MovieFrameEachNSteps = 1e4;
+ // const int MovieFrameEachNSteps = 1e5;
   const int SimulationsSteps = 50000;
   const int MovieFrameEachNSteps = 1000;
- // const int SimulationsSteps = 1e5;
-  //const int MovieFrameEachNSteps = 1e4;
+  //const int SimulationsSteps = 1e7;
+  //const int MovieFrameEachNSteps = 100000;
   const double DeltaT = 0.01;  
   const int maxNeighbors = 60;  // max neighbor each cell has
   
+  const double v1 = 1.0;
+  const double v2 = 1.0;
+  const double v3 = 1.0;
+
   // create cell types
-  CellType type1;
+  CellType type1; //Basement
   type1.volumeElasticity = 1;  //  K_V
-  type1.preferredVolume = 1.05;  //  V_0
+  type1.preferredVolume = v1;  //  V_0
   type1.surfaceElasticity = 1;  //  K_S
   type1.preferredSurface = 5.5;  //  S_0 
+  //type1.preferredSurface = 5.5/pow(v1,2/3);  //  S_0 
   type1.angularDiffusion = 1;  // D_rz
   type1.speed = 0.1;  // v_0
-  CellType type2;
+  CellType type2; //Basal
   type2.volumeElasticity = 1;  //  K_V
-  type2.preferredVolume = 0.95;  //  V_0
+  type2.preferredVolume = v2;  //  V_0
   type2.surfaceElasticity = 1;  //  K_S
   type2.preferredSurface = 5.5;  //  S_0 
+  //type2.preferredSurface = 5.5/pow(v2,2/3);  //  S_0 
   type2.angularDiffusion = 1;  // D_r
   type2.speed = 0.1;  // v_0
+  CellType type3; //Suprabasal
+  type3.volumeElasticity = 1;  //  K_V
+  type3.preferredVolume = v3;  //  V_0
+  type3.surfaceElasticity = 1;  //  K_S
+  type3.preferredSurface = 5.5;  //  S_0 
+  //type3.preferredSurface = 5.5/pow(v3,2/3);  //  S_0 
+  type3.angularDiffusion = 1;  // D_r
+  type3.speed = 0.1;  // v_0
   
   // set additional interfacial tension between type1 and type2 cells
-  type1.setAdditionalInterfacialTensionWith(type2, 0.03);
+  type1.setAdditionalInterfacialTensionWith(type2, 0.03); //Basement Basal
+  type1.setAdditionalInterfacialTensionWith(type3, 1.0); //Basement Suprabasal
+  type2.setAdditionalInterfacialTensionWith(type3, 0.03); //Basal Suprabasal
+
+  // type1.setAdditionalInterfacialTensionWith(type2, 0.1); //Basement Basal
+  // type1.setAdditionalInterfacialTensionWith(type3, 1.0); //Basement Suprabasal
+  // type2.setAdditionalInterfacialTensionWith(type3, 0.1); //Basal Suprabasal
   // ^^^^^ For most purposes, this does the same as:
   //  type1.setAdditionalInterfacialTensionWith(type2, 1);
   //  type2.setAdditionalInterfacialTensionWith(type1, 1);
@@ -115,17 +139,24 @@ int main(int argc, char** argv) {
   // ------------------------------------------
 
   // create box, tesselation, and add cells at random positions:
-  const double Side = cubicRoot(NumberOfCellsType1 + NumberOfCellsType2);
+  const double Side = cubicRoot(TotalCells);
   PeriodicBox box(Side, Side, Side);
   Tessellation t(box);
   //t.addCellsAtRandomPositions(type1, NumberOfCellsType1);
   //t.addCellsAtRandomPositions(type2, NumberOfCellsType2);
+  //t.addCellsAtRandomPositions(type3, NumberOfCellsType3);
   //t.squareLattice(type1, NumberOfCellsType1);
   //t.squareLattice2(type2, NumberOfCellsType2);
 
+
+  // Stratified Layer
+  t.basementmembrane(type1, NumberOfCellsType1);
+  t.basal(type2, NumberOfCellsType2);
+  t.suprabasal(type3, NumberOfCellsType3);
+
   //Top half type 1 bot half type 2
-  t.addCellsTopHalf(type1, NumberOfCellsType1);
-  t.addCellsBottomHalf(type2, NumberOfCellsType2);  
+  //t.addCellsTopHalf(type1, NumberOfCellsType1);
+  //t.addCellsBottomHalf(type2, NumberOfCellsType2);  
 
   // alternatively, this creates for instance a spherical arrangement of type-1 cells within type-2 cells as an initial state:
 //  const Vector3D MidPoint(0.5*Side, 0.5*Side, 0.5*Side);
@@ -261,11 +292,23 @@ int main(int argc, char** argv) {
          InterfacialCellArea12->SetNumberOfTuples(nCells);
          InterfacialCellArea12->SetName("InterfacialCellArea12");
 
-         // cell registration
+         //Interfacial area between basal and suprabasal
+         vtkSmartPointer<vtkDoubleArray> InterfacialCellArea23 = vtkSmartPointer<vtkDoubleArray>::New();
+         InterfacialCellArea23->SetNumberOfComponents(maxNeighbors);
+         InterfacialCellArea23->SetNumberOfTuples(nCells);
+         InterfacialCellArea23->SetName("InterfacialCellArea23");
+
+         // cell regustratuin
          vtkSmartPointer<vtkDoubleArray> cellRegister12 = vtkSmartPointer<vtkDoubleArray>::New();
          cellRegister12->SetNumberOfComponents(maxNeighbors);
          cellRegister12->SetNumberOfTuples(nCells);
          cellRegister12->SetName("cellRegister12");
+
+         // cell regustratuin
+         vtkSmartPointer<vtkDoubleArray> cellRegister23 = vtkSmartPointer<vtkDoubleArray>::New();
+         cellRegister23->SetNumberOfComponents(maxNeighbors);
+         cellRegister23->SetNumberOfTuples(nCells);
+         cellRegister23->SetName("cellRegister23");
 
         std::unordered_map<Cell*, unsigned int> cellToIndex;
         for(unsigned int i=0; i<t.cells().size(); ++i) {
@@ -275,7 +318,6 @@ int main(int argc, char** argv) {
          int cellCounter = 0;
          int numberTotalVerticesWithDups = 0;
          int cellTypeInt = 0;
-         
 
         for(Cell *c : t.cells()) {
           if(c->type()==&type1) {
@@ -284,8 +326,11 @@ int main(int argc, char** argv) {
           else if( c->type()==&type2 ) {
             cellTypeInt = 1;
           }
+          else if( c->type()==&type3 ) {
+            cellTypeInt = 2;
+          }
 
-           cellCounter++;
+          cellCounter++;
             int numberOfFacesOfCell = c->faces().size();
             const int numberOfVerticesOfCell = c->vertices().size();
 
@@ -300,13 +345,13 @@ int main(int argc, char** argv) {
             
             int faceCounter = 0;
             int neighborIndices[maxNeighbors];
-          	std::fill_n(neighborIndices,maxNeighbors,-1); // -1 means no neighbor
+            std::fill_n(neighborIndices,maxNeighbors,-1); // -1 means no neighbor
             // loop through faces and edges to store vertices
             for(const DirectedFace *f : c->faces()) {
                int numberOfVerticesOfFace = 0;
 
-            	Cell *neighbor=f->otherCell();
-           		neighborIndices[faceCounter] = cellToIndex[neighbor];
+              Cell *neighbor=f->otherCell();
+              neighborIndices[faceCounter] = cellToIndex[neighbor];
 
                // loop through edges to count face vertices and store vertices' positions
                DirectedEdgeOfCell *edge=f->firstEdge();
@@ -327,15 +372,20 @@ int main(int argc, char** argv) {
                }
                ++faceCounter;
             } // end face loop
- 
+
             double interfacialAreaArray12[maxNeighbors];
+            double interfacialAreaArray23[maxNeighbors];
             double RegisterArray12[maxNeighbors];
+            double RegisterArray23[maxNeighbors];
 
             std::fill_n(interfacialAreaArray12,maxNeighbors,-1); // -1 means no interface
+            std::fill_n(interfacialAreaArray23,maxNeighbors,-1); // -1 means no interface
             std::fill_n(RegisterArray12,maxNeighbors,-1); // -1 means no interface
+            std::fill_n(RegisterArray23,maxNeighbors,-1); // -1 means no interface
 
             double interfacialArea;
-            int count12=0;          
+            int count12=0;
+            int count23=0;            
             int othertype;
             double cellvols;
             double tempVec1[3];
@@ -355,6 +405,9 @@ int main(int argc, char** argv) {
                     else if(f->otherCell()->type()==&type2 ) {
                       othertype = 1;
                     }
+                    else if(f->otherCell()->type()==&type3 ) {
+                      othertype = 2;
+                    }
                   
                   //std::cout <<  cellTypeInt << " "<< othertype << std::endl;
                   
@@ -372,21 +425,38 @@ int main(int argc, char** argv) {
                         
                         if(interfacialArea>0.5){
                         tempy=tempVec2[1]-tempVec1[1];
-                        tempx=tempVec2[0]-tempVec1[0];
-                        if(abs(tempx)>pow(TotalCells,1/3)-2){
-                          tempx=abs(tempx)-pow(TotalCells,1/3);
-                        }
-                        if(abs(tempy)>pow(TotalCells,1/3)-2){
-                          tempy=abs(tempy)-pow(TotalCells,1/3);
-                        }
+                       	tempx=tempVec2[0]-tempVec1[0];
+                       	if(abs(tempx)>pow(TotalCells,1/3)-2){
+                       		tempx=abs(tempx)-pow(TotalCells,1/3);
+                       	}
+                       	if(abs(tempy)>pow(TotalCells,1/3)-2){
+                       		tempy=abs(tempy)-pow(TotalCells,1/3);
+                       	}
                         RegisterArray12[count12]=1-pow(pow(tempx,2)+pow(tempy,2),0.5)/(pow(cellvols,1/3));
                         }
                         count12 +=1;
                       }
+                        if(othertype==2)
+                      {
+                        interfacialAreaArray23[count23]=interfacialArea;
+ 						
+ 						if(interfacialArea>0.5){
+                        tempy=tempVec2[1]-tempVec1[1];
+                       	tempx=tempVec2[0]-tempVec1[0];
+                       	if(abs(tempx)>pow(TotalCells,1/3)-2){
+                       		tempx=abs(tempx)-pow(TotalCells,1/3);
+                       	}
+                       	if(abs(tempy)>pow(TotalCells,1/3)-2){
+                       		tempy=abs(tempy)-pow(TotalCells,1/3);
+                       	}
+                        RegisterArray23[count23]=1-pow(pow(tempx,2)+pow(tempy,2),0.5)/(pow(cellvols,1/3));
+                        }
+
+                        count23 +=1;
+                      }
                   }
               }       
             }
-
 
             // add cell to unstructure grid
             uGrid->InsertNextCell(VTK_POLYHEDRON,vtkFaces);
@@ -405,8 +475,10 @@ int main(int argc, char** argv) {
             cellSurfArea->InsertValue(cellCounter-1, c->surface());
             cellEnergy->InsertValue(cellCounter-1, c->energy());
             InterfacialCellArea12->InsertTupleValue(cellCounter-1,interfacialAreaArray12);
+            InterfacialCellArea23->InsertTupleValue(cellCounter-1,interfacialAreaArray23);
             cellRegister12->InsertTupleValue(cellCounter-1,RegisterArray12);
-           
+            cellRegister23->InsertTupleValue(cellCounter-1,RegisterArray23);
+
             EllipsoidByUnitPointMassPolyhedron fittedCell = 
                c->fitEllipsoidByUnitPointMassPolyhedron();
             tempVec[0] = fittedCell.a();
@@ -436,9 +508,11 @@ int main(int argc, char** argv) {
             uGrid->GetCellData()->AddArray(cellEllipsoidAaxis);
             uGrid->GetCellData()->AddArray(cellEllipsoidBaxis);
             uGrid->GetCellData()->AddArray(cellEllipsoidCaxis);
-            uGrid->GetCellData()->AddArray(cellNeighbor);
             uGrid->GetCellData()->AddArray(InterfacialCellArea12);
+            uGrid->GetCellData()->AddArray(InterfacialCellArea23);
+            uGrid->GetCellData()->AddArray(cellNeighbor);
             uGrid->GetCellData()->AddArray(cellRegister12);
+            uGrid->GetCellData()->AddArray(cellRegister23);
             
          } // end cell loop
          

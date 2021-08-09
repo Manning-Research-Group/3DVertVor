@@ -50,6 +50,107 @@ void Tessellation::addCellsAtRandomPositions(const CellType &cellType, const int
   }
 }
 
+void Tessellation::addCellsTopHalf(const CellType &cellType, const int NumberOfCells) {
+  // create randomly placed cells
+  for(int i=0; i<NumberOfCells; ++i) {
+    addCell(cellType, Vector3D(Random::uniform(_box.x), Random::uniform(_box.y), Random::uniform(0.5*_box.z)));
+//    std::cout << _cells[i].position() << std::endl;
+  }
+}
+
+void Tessellation::addCellsBottomHalf(const CellType &cellType, const int NumberOfCells) {
+  // create randomly placed cells
+  for(int i=0; i<NumberOfCells; ++i) {
+    addCell(cellType, Vector3D(Random::uniform(_box.x), Random::uniform(_box.y), 0.5*_box.z+Random::uniform(0.5*_box.z)));
+//    std::cout << _cells[i].position() << std::endl;
+  }
+}
+
+void Tessellation::squareLattice(const CellType &cellType, const int NumberOfCells) {
+  // create randomly placed cells
+
+  int sidelength = int(cbrt(2*NumberOfCells));
+  for(int i=0; i<NumberOfCells; ++i) {
+    //  if(i%) {
+    //}
+    double xpos = 0.0;
+    double ypos = 0.0;
+    double zpos = 0.0;
+    int ii,jj,kk;
+    int sidedist = sidelength/2;
+
+    ii = i%(sidedist);
+    jj = int(i/sidedist)%sidelength;
+    kk = int(i/(sidedist*sidelength));
+
+    //std::cout << i << std::endl;
+    //std::cout << ii << std::endl;
+    //std::cout << jj << std::endl;
+    //std::cout << kk << std::endl;
+    //=2*B3+IF(MOD(B4-1,2)=0,1,0)+0.5
+
+    xpos = 2*ii+0.5+((jj-1)%2==0)*(kk%2==0)+(jj%2==0)*((kk-1)%2==0)+0.1*Random::uniform(_box.x)/sidelength;
+    ypos = jj+0.5+0.1*Random::uniform(_box.y)/sidelength;
+    zpos = kk+0.5+0.1*Random::uniform(_box.z)/sidelength;
+
+    //std::cout << i << std::endl;
+    //std::cout << xpos << std::endl;
+    //std::cout << ypos << std::endl;
+    //std::cout << zpos << std::endl;
+
+    addCell(cellType, Vector3D(xpos, ypos, zpos));
+    //addCell(cellType, Vector3D(Random::uniform(_box.x), Random::uniform(_box.y), 0.5*_box.z+Random::uniform(0.5*_box.z)));
+//    std::cout << _cells[i].position() << std::endl;
+  }
+}
+
+void Tessellation::squareLattice2(const CellType &cellType, const int NumberOfCells) {
+  // create randomly placed cells
+
+  int sidelength = int(cbrt(2*NumberOfCells));
+  for(int i=0; i<NumberOfCells; ++i) {
+    double xpos = 0.0;
+    double ypos = 0.0;
+    double zpos = 0.0;
+    int ii,jj,kk;
+    int sidedist = sidelength/2;
+
+    ii = i%(sidedist);
+    jj = int(i/sidedist)%sidelength;
+    kk = int(i/(sidedist*sidelength));
+
+    xpos = 2*ii+0.5+((jj-1)%2==0)*((kk-1)%2==0)+(jj%2==0)*((kk)%2==0)+0.1*Random::uniform(_box.x)/sidelength;
+    ypos = jj+0.5+0.1*Random::uniform(_box.y)/sidelength;
+    zpos = kk+0.5+0.1*Random::uniform(_box.z)/sidelength;
+
+    addCell(cellType, Vector3D(xpos, ypos, zpos));
+  }
+}
+
+void Tessellation::basementmembrane(const CellType &cellType, const int NumberOfCells) {
+  // create randomly placed cells
+  for(int i=0; i<NumberOfCells; ++i) {
+    addCell(cellType, Vector3D(Random::uniform(_box.x), Random::uniform(_box.y), Random::uniform(0.25*_box.z)));
+//    std::cout << _cells[i].position() << std::endl;
+  }
+}
+
+void Tessellation::basal(const CellType &cellType, const int NumberOfCells) {
+  // create randomly placed cells
+  for(int i=0; i<NumberOfCells; ++i) {
+    addCell(cellType, Vector3D(Random::uniform(_box.x), Random::uniform(_box.y), 0.25*_box.z+Random::uniform(0.25*_box.z)));
+//    std::cout << _cells[i].position() << std::endl;
+  }
+}
+
+void Tessellation::suprabasal(const CellType &cellType, const int NumberOfCells) {
+  // create randomly placed cells
+  for(int i=0; i<NumberOfCells; ++i) {
+    addCell(cellType, Vector3D(Random::uniform(_box.x), Random::uniform(_box.y), 0.5*_box.z+Random::uniform(0.5*_box.z)));
+//    std::cout << _cells[i].position() << std::endl;
+  }
+}
+
 
 // ***** minimization ***** //
 

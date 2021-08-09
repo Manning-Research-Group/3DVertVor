@@ -42,7 +42,15 @@ public:
   // creation
   void addCell(const CellType &cellType, const Vector3D &position);
   void addCellsAtRandomPositions(const CellType &cellType, const int NumberOfCells);
-  
+  void addCellsTopHalf(const CellType &cellType, const int NumberOfCells);
+  void addCellsBottomHalf(const CellType &cellType, const int NumberOfCells);
+  void squareLattice(const CellType &cellType, const int NumberOfCells);
+  void squareLattice2(const CellType &cellType, const int NumberOfCells);
+
+  void basementmembrane(const CellType &cellType, const int NumberOfCells);
+  void basal(const CellType &cellType, const int NumberOfCells);
+  void suprabasal(const CellType &cellType, const int NumberOfCells);
+
   // minimization
   void setDofs(MinimizerWithDerivative &minimizer);
   bool relax(MinimizerWithDerivative &minimizer);

@@ -66,3 +66,6 @@ target_link_libraries(exampleHeterogeneousCellTypes.exe core povray ${VTK_LIBRAR
 
 add_executable(exampleEnergyMinimization.exe exampleEnergyMinimization.cpp)
 target_link_libraries(exampleEnergyMinimization.exe core miscMinimization)
+
+add_executable(stratifiedEpithelial.exe stratifiedEpithelial.cpp)
+target_link_libraries(stratifiedEpithelial.exe core povray ${VTK_LIBRARIES} -lstdc++fs)

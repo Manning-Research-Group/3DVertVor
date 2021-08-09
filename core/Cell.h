@@ -5,8 +5,10 @@
 #include <iostream>
 
 #include "misc/geometry/Vector3D.h"
+#include "misc/geometry/Matrix3x3.h"
 #include "misc/geometry/Matrix3x3x3.h"
 #include "misc/geometry/Ellipsoid.h"
+#include "misc/geometry/EllipsoidByUnitPointMassPolyhedron.h"
 
 #include "povray/PovrayMesh.h"
 
@@ -55,6 +57,7 @@ public:
   void setEdgeRestLengthsToCurrentLengths();
   Ellipsoid fitEllipsoid() const { Vector3D cm; return fitEllipsoid(cm); }
   Ellipsoid fitEllipsoid(Vector3D &centerOfMass) const;
+  EllipsoidByUnitPointMassPolyhedron fitEllipsoidByUnitPointMassPolyhedron();
 #if defined(CONFIG_CREATE_ANGULAR_NOISE_WALKING_ALONG_SPHERE) || defined(CONFIG_CREATE_ANGULAR_NOISE_RAIBLE_WINKLER)
   void setDirectionOfSelfPropulsion(const Vector3D &n) { _directionOfSelfPropulsion = n/n.norm(); }
   const Vector3D &directionOfSelfPropulsion() const { return _directionOfSelfPropulsion; }
@@ -117,6 +120,7 @@ private:
   double _selfPropulsionTheta, _selfPropulsionPhi;
 #endif
   double _volume, _surface;
+  Matrix3x3 _unitPointMassMomentOfInertiaTensor;
 
   // dynamical matrix
   void computeContributionsToDynamicalMatrix(Tessellation &t);  // argument only for debugging!
@@ -126,4 +130,3 @@ private:
 };
 
 #endif	/* CELL_H */
-

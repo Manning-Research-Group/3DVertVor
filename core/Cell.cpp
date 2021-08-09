@@ -96,6 +96,58 @@ Ellipsoid Cell::fitEllipsoid(Vector3D &centerOfMass) const {
   return Ellipsoid(integratedDyadicProduct - dyadicProduct(VolumeRegularTetrahedron*totalRelativeVolume*centerOfMass, centerOfMass));
 }
 
+/*
+ * Here, the moment of inertia considers a point mass at each vertex. Other formulations of
+ * moment of inertia exist, but here we use the simplest which seems to work very well for our
+ * needs of defining an ellipsoid for each cell. For more details, see Dobrovolskis (1996) - Inertia
+ * of any polyhedron.
+*/
+EllipsoidByUnitPointMassPolyhedron Cell::fitEllipsoidByUnitPointMassPolyhedron() {
+   
+  // six terms of symmetric moment of intertia tensor
+  double Ixx = 0;
+  double Ixy = 0;
+  double Ixz = 0;
+  double Iyy = 0;
+  double Iyz = 0;
+  double Izz = 0;
+
+  int vertexCounter = 0;
+  for(DirectedFace *face : faces()) {
+    
+    DirectedEdgeOfCell *edge = face->firstEdge();
+    do {
+      edge = edge->nextAroundFace();
+      VertexOfCell *vertex = edge->vertex();
+
+      double x = vertex->positionRelativeToCell().x();
+      double y = vertex->positionRelativeToCell().y();
+      double z = vertex->positionRelativeToCell().z();
+      
+      Ixx += y*y + z*z;
+      Iyy += x*x + z*z;
+      Izz += x*x + y*y;
+      Ixy += x*y;
+      Ixz += x*z;
+      Iyz += y*z;
+
+      vertexCounter++;
+      
+    } while(edge!=face->firstEdge());
+  } //end face loop
+  
+  Ixx /= vertexCounter;
+  Iyy /= vertexCounter;
+  Izz /= vertexCounter;
+  Ixy /= vertexCounter;
+  Ixz /= vertexCounter;
+  Iyz /= vertexCounter;
+  
+  _unitPointMassMomentOfInertiaTensor = Matrix3x3(Vector3D(Ixx,-Ixy,-Ixz), Vector3D(-Ixy,Iyy,-Iyz), 
+                                     Vector3D(-Ixz,-Iyz,Izz)); 
+  
+  return EllipsoidByUnitPointMassPolyhedron(_unitPointMassMomentOfInertiaTensor);
+}
 
 void Cell::setEdgeRestLengthsTo(double l) {
   for(DirectedEdgeOfCell *e : _edges) {

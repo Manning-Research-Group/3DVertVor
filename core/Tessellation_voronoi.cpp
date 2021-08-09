@@ -33,10 +33,18 @@ void Tessellation::setTopologyByVoronoiTesselation() {
                                             0.0, 0.0, _box.z, 
                                             NumComputationalBlocksX, NumComputationalBlocksY, NumComputationalBlocksZ,
                                             16);
-  
+   // voro::container_periodic_poly voronoiContainer(_box.x, 
+   //                                          _box.shearYx*_box.y, _box.y, 
+   //                                          0.0, 0.0, _box.z, 
+   //                                          NumComputationalBlocksX, NumComputationalBlocksY, NumComputationalBlocksZ,
+   //                                          16);
+  //voro::container_periodic_poly 
   // fill with cells
   for(unsigned int i=0; i<_cells.size(); ++i) {
     Cell *c = _cells[i];
+    double curVols = cbrt(c->type()->preferredVolume);
+    //std::cout << curVols << std::endl;
+    //int type= c->type();
 //    c->moveIntoBox();
     const Vector3D &p = c->position();
     // check for nans:
@@ -45,6 +53,7 @@ void Tessellation::setTopologyByVoronoiTesselation() {
       exit(1);
     }
     // otherwise add to container
+    //voronoiContainer.put(i, p.x(), p.y(), p.z(), curVols/2);
     voronoiContainer.put(i, p.x(), p.y(), p.z());
   }
 
@@ -61,12 +70,13 @@ void Tessellation::setTopologyByVoronoiTesselation() {
       if(voronoiContainer.compute_cell(voroCell, voroParticleLoop)) {
         // to map the combined vertex + bond index to an edge pointer
         DirectedEdgeOfCell **cellEdges = new DirectedEdgeOfCell*[3*voroCell.p];
-        
+        //std::cout << voroCell.p << std::endl;
         // create the vertices and edges
         for(int vertexIndex=0; vertexIndex<voroCell.p; ++vertexIndex) {
           // create vertex within cell
           Vector3D twoTimesRelativeVertexPosition(voroCell.pts[3*vertexIndex], voroCell.pts[3*vertexIndex+1], voroCell.pts[3*vertexIndex+2]);
           VertexOfCell *vertex = cell->newVertex(0.5*twoTimesRelativeVertexPosition);
+
 
           // check number of bonds
           if(voroCell.nu[vertexIndex]!=3) {
@@ -118,6 +128,8 @@ void Tessellation::setTopologyByVoronoiTesselation() {
         delete[] cellEdges;
       } else {
         Vector3D voroPos(voroParticleLoop.x(), voroParticleLoop.y(), voroParticleLoop.z());
+        //std::cout << voronoiContainer.compute_cell(voroCell, voroParticleLoop) << std::endl;
+
         std::cerr << "Tessellation::setTopologyByVoronoiTesselation: Error computing cell for particle " << voroParticleLoop.pid() << " at voro pos: " << voroPos << ", my pos: " << _cells[voroParticleLoop.pid()]->position() << "!" << std::endl;
         exit(1);
       }
