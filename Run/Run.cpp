@@ -255,9 +255,9 @@ int     Run::InitializeCellType() {
         }
         if(stratified==1){
         double layer = 0;
-        int type1countmax = Lx_*Ly_-round(Lx_*Ly_*0.1);
+        int type1countmax = Lx_*Ly_-round(Lx_*Ly_*0.05);
         type1count = type1countmax;
-        double layermin = 6.0;
+        double layermin = Lz_/2;
 
         while(type1count>0)
         {
@@ -445,12 +445,12 @@ int Run::start() {
             //vertices_[0]->updateSP(temperature_);
         }
         //if(simulation_time_ > 100 && simulation_time_ < 100 + dt_){InitializeCellDelam();}
-        if(simulation_time_ > 75 + dt_ && simulation_time_ < 75 + 2*dt_){InitalizeSolidifcation();}
+        //if(simulation_time_ > 75 + dt_ && simulation_time_ < 75 + 2*dt_){InitalizeSolidifcation();}
 
-    	  if(simulation_time_ > 100 + dt_ && simulation_time_ < 100 + 2*dt_){InitializePlacode();
+    	  //if(simulation_time_ > 100 + dt_ && simulation_time_ < 100 + 2*dt_){InitializePlacode();
           //placodeon_= 1;
-      	}
-        if(placodeon_==1){PlacodeCenter();}
+      	//}
+        //if(placodeon_==1){PlacodeCenter();}
         
         // update geometry information
         updateGeoinfo();
