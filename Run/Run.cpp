@@ -59,6 +59,8 @@ int     Run::InitializeCellUniform() {
     updateCellVertices();
     for (auto cell : cells_) {
         cell->type_ = 1;
+        cell->s0_=5.6;
+        cell->v0_=1.0;
     }
     
     return 0;
