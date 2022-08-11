@@ -239,7 +239,7 @@ int Polygon::SpringGon(double curtime) {
             double templ = 0.0;
             //double l0 = pow(run_->v01_,2/3);
             //double l0 = 0.4;
-            double ks = 1.0;
+            double ks = 5.0;
             tempx = edges_[i]->vertices_[0]->position_[0]-edges_[i]->vertices_[1]->position_[0];
             tempy = edges_[i]->vertices_[0]->position_[1]-edges_[i]->vertices_[1]->position_[1];
             tempz = edges_[i]->vertices_[0]->position_[2]-edges_[i]->vertices_[1]->position_[2];

@@ -257,7 +257,8 @@ int     Run::InitializeCellType() {
         }
         if(stratified==1){
         double layer = 0;
-        int type1countmax = Lx_*Ly_-round(Lx_*Ly_*0.05);
+        //int type1countmax = Lx_*Ly_-round(Lx_*Ly_*0.05);
+        int type1countmax = Lx_*Ly_+round(Lx_*Ly_*0.05);
         type1count = type1countmax;
         double layermin = Lz_/2;
 
@@ -278,7 +279,7 @@ int     Run::InitializeCellType() {
                    //cout << layer*Lz_/10.0 << endl;
                    if(cell->cellcenter_[2]<layermin + layer*(Lz_-layermin)/10.0 && cell->cellcenter_[2]>layermin)
                     {
-                        cell->type_ = 1;
+                        cell->type_ = 7;
                         cell->color_ = 1;
                         type1count -=1;
                         nbasal +=1;
@@ -290,7 +291,7 @@ int     Run::InitializeCellType() {
                     }
                     else
                     {
-                        cell->type_ = 3;
+                        cell->type_ = 15;
                         cell->color_ = 2;     
                         nsupra +=1;      
                     }                 
@@ -308,15 +309,15 @@ int     Run::InitializeCellType() {
       //cell->s0_=6.65;
       cell->v0_=v01_;
       }
-    if(cell->type_ == 1){
-      cell->s0_=s02_;
+    if(cell->type_ == 7){
+      cell->s0_=s04_;
       //cell->s0_=6.65;
-      cell->v0_=v02_;
+      cell->v0_=v04_;
       }
-    if(cell->type_ == 3){
-      cell->s0_=s03_;
+    if(cell->type_ == 15){
+      cell->s0_=s05_;
       //cell->s0_=6.65;
-      cell->v0_=v03_;
+      cell->v0_=v05_;
       }
 
     }}
@@ -447,7 +448,7 @@ int Run::start() {
             //vertices_[0]->updateSP(temperature_);
         }
         //if(simulation_time_ > 100 && simulation_time_ < 100 + dt_){InitializeCellDelam();}
-        //if(simulation_time_ > 75 + dt_ && simulation_time_ < 75 + 2*dt_){InitalizeSolidifcation();}
+        if(simulation_time_ > 75 + dt_ && simulation_time_ < 75 + 2*dt_){InitalizeSolidifcation();}
 
     	  //if(simulation_time_ > 100 + dt_ && simulation_time_ < 100 + 2*dt_){InitializePlacode();
           //placodeon_= 1;
@@ -678,11 +679,11 @@ int Run::start() {
 	                    polyverts[j][2]=cell->polygons_[i]->vertices_[j]->position_[2];
 
 	                    if(polyverts[j][0]<1){xminus=1;}
-	                    if(polyverts[j][0]>7){xplus=1;}
+	                    if(polyverts[j][0]>Lx_-1){xplus=1;}
 	                    if(polyverts[j][1]<1){yminus=1;}
-	                    if(polyverts[j][1]>7){yplus=1;}
+	                    if(polyverts[j][1]>Ly_-1){yplus=1;}
 	                    if(polyverts[j][2]<1){zminus=1;}
-	                    if(polyverts[j][2]>7){zplus=1;}
+	                    if(polyverts[j][2]>Lz_-1){zplus=1;}
             		}
             	}
 
@@ -878,10 +879,7 @@ int Run::start() {
             
             tempani = (tempradii[2]/tempradii[0])*(tempradii[1]/tempradii[0]);
 
-          // if(cell->id_==0){check=1;
-          //   cout << "Cell Center: " << cell->cellcenter_[0] << "," << cell->cellcenter_[1] << "," << cell->cellcenter_[2] << endl;}
-          // else{check=0;}
-          //cout << "{" << cell->cellcenter_[0] << "," << cell->cellcenter_[1]<< "," << cell->cellcenter_[2] << "},";
+
           for (long int i = 0; i < cell->polygons_.size(); i++) { 
                 polyCounter3++;
                 double tempreg=0;
@@ -896,24 +894,6 @@ int Run::start() {
                 double tempneighs[2];
                 int curcellID = cell->id_;
                 
-                // if(check==1)
-                //   {
-                //     //cout << "Polygon: " << i << endl;
-                //   for (int j = 0; j < cell->polygons_[i]->vertices_.size(); j++) {
-                //       //cout << "Vertex: " << j << endl;
-                //       cout << "{" << cell->polygons_[i]->vertices_[j]->position_[0] << "," << cell->polygons_[i]->vertices_[j]->position_[1] << "," << cell->polygons_[i]->vertices_[j]->position_[2] << "},";
-                //     }
-                //     cout << endl;
-                //   }
-
-                //cout << "Current Cell: " << curcellID << " Total Neighbors: " << cell->polygons_.size() << " Pair: " << cell->polygons_[i]->twincell_[0] << " " << cell->polygons_[i]->twincell_[1] << endl;
-                //cout << " Pair: " << cell->polygons_[i]->twincell_[0] << " " << cell->polygons_[i]->twincell_[1] << " Position 0: {" << cells_[cell->polygons_[i]->twincell_[0]]->cellcenter_[0] << "," << cells_[cell->polygons_[i]->twincell_[0]]->cellcenter_[1] << "," << cells_[cell->polygons_[i]->twincell_[0]]->cellcenter_[2] << "}, Position 1: {" << cells_[cell->polygons_[i]->twincell_[1]]->cellcenter_[0] << "," << cells_[cell->polygons_[i]->twincell_[1]]->cellcenter_[1] << "," << cells_[cell->polygons_[i]->twincell_[1]]->cellcenter_[2] << "}" << endl;
-                
-                //if(cell->polygons_[i]->type_==1){ 
-                //cout << "{" << cells_[cell->polygons_[i]->twincell_[0]]->cellcenter_[0] << "," << cells_[cell->polygons_[i]->twincell_[0]]->cellcenter_[1] << "," << cells_[cell->polygons_[i]->twincell_[0]]->cellcenter_[2] << "},";
-                //cout << "{" << cells_[cell->polygons_[i]->twincell_[1]]->cellcenter_[0] << "," << cells_[cell->polygons_[i]->twincell_[1]]->cellcenter_[1] << "," << cells_[cell->polygons_[i]->twincell_[1]]->cellcenter_[2] << "},";
-                //  cout << cell -> id_ << endl;
-                //}
 
                 tempx = cells_[cell->polygons_[i]->twincell_[0]]->cellcenter_[0] - cells_[cell->polygons_[i]->twincell_[1]]->cellcenter_[0];
                 tempy = cells_[cell->polygons_[i]->twincell_[0]]->cellcenter_[1] - cells_[cell->polygons_[i]->twincell_[1]]->cellcenter_[1];
@@ -951,41 +931,12 @@ int Run::start() {
  
                 xyave+=pow(pow(tempx,2)+pow(tempy,2),0.5);
                 xyavenum+=1;
-                //tempreg = abs(parallel)/(vecmag);
-                //}
 
                 distarray+=pow(pow(tempx,2)+pow(tempy,2)+pow(tempz,2),0.5);
                 xarray+=abs(tempx);
                 yarray+=abs(tempy);
                 zarray+=abs(tempz);
 
-                // if(cellcounter==0 && cell->polygons_[i]->type_==1){
-                //   cout << "Cell 1: " << cell->polygons_[i]->twincell_[0] << endl;
-                //   cout << "Cell 2: " << cell->polygons_[i]->twincell_[1] << endl;
-                //   cout << "Polygon: " << cell->polygons_[i]->twincell_[2] << ", " << cell->polygons_[i]->twincell_[3] << endl;
-                //   cout << cells_[cell->polygons_[i]->twincell_[0]]->cellcenter_[0] << endl;
-                //   cout << cells_[cell->polygons_[i]->twincell_[0]]->cellcenter_[1] << endl;
-                //   cout << cells_[cell->polygons_[i]->twincell_[0]]->cellcenter_[2] << endl;
-                //   cout << cells_[cell->polygons_[i]->twincell_[1]]->cellcenter_[0] << endl;
-                //   cout << cells_[cell->polygons_[i]->twincell_[1]]->cellcenter_[1] << endl;
-                //   cout << cells_[cell->polygons_[i]->twincell_[1]]->cellcenter_[2] << endl;
-                //   cout << cell->polygons_[i]->normvector_[0] << endl;
-                //   cout << cell->polygons_[i]->normvector_[1] << endl;
-                //   cout << cell->polygons_[i]->normvector_[2] << endl;
-                //   cout << parallel << endl;
-                //   cout << perpendicular << endl;
-                //   cout << tempreg << endl;
-                //   cout << tempregZ << endl;
-                //   cout << "Right End" << endl;
-                //   cellcounter +=1;
-                // }
-
-
-                // if(cell->polygons_[i]->type_==1){
-                // cout << "Cell: " << i << endl;
-                // cout << "TempRegZ: " << tempregZ << endl;
-                // cout << "TempReg: " << tempreg << endl;
-                // }
 
                 cellEllipsoidAaxis->InsertTuple(polyCounter3-1,tempAaxis);
                 uGrid->GetCellData()->AddArray(cellEllipsoidAaxis);
@@ -1014,13 +965,6 @@ int Run::start() {
                 uGrid->GetCellData()->AddArray(PolyNeighs);
               }
             }
-            // cout << "Average Dist: " << vecmagave/vecmagnum << endl;
-            // cout << "Average XY-Dist: " << xyave/xyavenum << endl;
-            // cout << "Average Radius" << endl;
-            // cout << distarray/polyCounter3 << endl;
-            // cout << xarray/polyCounter3 << endl;
-            // cout << yarray/polyCounter3 << endl;
-            // cout << zarray/polyCounter3 << endl;
 
              // add time stamp to vtk data set
              vtkTimeArray->InsertValue(0,simulation_time_);
@@ -1063,12 +1007,132 @@ int Run::start() {
         }
 
 
+            for (auto cell : cells_) {
+	            int xplus = 0;
+	            int xminus = 0;
+	            int yplus = 0;
+	            int yminus = 0;
+	            int zplus = 0;
+	            int zminus =0;
+
+            	for (long int i = 0; i < cell->polygons_.size(); i++) { 
+
+	            	for (int j = 0; j < cell->polygons_[i]->vertices_.size(); j++) {                 
+
+		                int numberOfVerticesOfFace = cell->polygons_[i]->vertices_.size();
+
+		                double polyverts[numberOfVerticesOfFace][3];
+	                    polyverts[j][0]=cell->polygons_[i]->vertices_[j]->position_[0];
+	                    polyverts[j][1]=cell->polygons_[i]->vertices_[j]->position_[1];
+	                    polyverts[j][2]=cell->polygons_[i]->vertices_[j]->position_[2];
+
+	                    if(polyverts[j][0]<1){xminus=1;}
+	                    if(polyverts[j][0]>Lx_-1){xplus=1;}
+	                    if(polyverts[j][1]<1){yminus=1;}
+	                    if(polyverts[j][1]>Ly_-1){yplus=1;}
+	                    if(polyverts[j][2]<1){zminus=1;}
+	                    if(polyverts[j][2]>Lz_-1){zplus=1;}
+            		}
+            	}
+
+              double tempVec[3];
+              double totVec[3]{0,0,0};
+              double totArea = 0;
+              double totalvert[3];
+              double tempArea = 0;
+              double cell0neighs[16]{-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+              int cell0neighcount = 0;
+              int counttemp = 0;
+
+		    	for (long int i = 0; i < cell->polygons_.size(); i++) {  
+	                
+	                int numberOfVerticesOfFace = cell->polygons_[i]->vertices_.size();
+	                double polyverts[numberOfVerticesOfFace][3];
+
+                  tempVec[0]=0;
+                  tempVec[1]=0;
+                  tempVec[2]=0;
+                  counttemp = 0;
+                  tempArea = cell->polygons_[i]->area_;
+                  totArea += cell->polygons_[i]->area_;
+	                
+	                //cout << "Number of Verticies of Polygon: " << polygons_[i]->vertices_.size() << endl;
+	                for (int j = 0; j < cell->polygons_[i]->vertices_.size(); j++) {
+
+	                    polyverts[j][0]=cell->polygons_[i]->vertices_[j]->position_[0];
+	                    polyverts[j][1]=cell->polygons_[i]->vertices_[j]->position_[1];
+	                    polyverts[j][2]=cell->polygons_[i]->vertices_[j]->position_[2];
+
+	                    if(xminus==1 && xplus==1 && polyverts[j][0]<2){polyverts[j][0]+=Lx_;}
+	                    if(yminus==1 && yplus==1 && polyverts[j][1]<2){polyverts[j][1]+=Ly_;}
+	                    if(zminus==1 && zplus==1 && polyverts[j][2]<2){polyverts[j][2]+=Lz_;}
+
+                      tempVec[0] += polyverts[j][0];
+                      tempVec[1] += polyverts[j][1];
+                      tempVec[2] += polyverts[j][2];
+                      counttemp +=1;
+
+	                    }             
+
+                totVec[0] += tempVec[0]*tempArea/counttemp;
+                totVec[1] += tempVec[1]*tempArea/counttemp;
+                totVec[2] += tempVec[2]*tempArea/counttemp;
+
+                double tempnorm[3];
+                
+                tempnorm[0]=0;
+                tempnorm[1]=0;
+                tempnorm[2]=0;
+                int currpos;
+                int nextpos;
+
+                for (int j = 0; j < cell->polygons_[i]->vertices_.size(); j++) {
+                	currpos = j;
+                	nextpos = j+1;
+
+                  if(j+1==cell->polygons_[i]->vertices_.size()){nextpos = 0;}
+
+                	tempnorm[0] += (polyverts[currpos][1]-polyverts[nextpos][1])*(polyverts[currpos][2]+polyverts[nextpos][2]);
+                	tempnorm[1] += (polyverts[currpos][2]-polyverts[nextpos][2])*(polyverts[currpos][0]+polyverts[nextpos][0]);
+                	tempnorm[2] += (polyverts[currpos][0]-polyverts[nextpos][0])*(polyverts[currpos][1]+polyverts[nextpos][1]);
+
+                }
+
+                double tempmagvec;
+                tempmagvec = pow(pow(tempnorm[0],2)+pow(tempnorm[1],2)+pow(tempnorm[2],2),0.5);
+                cell->polygons_[i]->normvector_[0] = tempnorm[0]/tempmagvec;
+                cell->polygons_[i]->normvector_[1] = tempnorm[1]/tempmagvec;
+                cell->polygons_[i]->normvector_[2] = tempnorm[2]/tempmagvec;
+
+              }
+              
+
+              totVec[0] = totVec[0]/totArea;
+              totVec[1] = totVec[1]/totArea;
+              totVec[2] = totVec[2]/totArea;
+
+              for (long int i = 0; i < cell->polygons_.size(); i++) { 
+              int curcellID = cell->id_;
+              int curpolyID = cell->polygons_[i]->id_;
+
+              if(cell->polygons_[i]->twincell_[0] ==-1){cell->polygons_[i]->twincell_[0] = cell->id_;
+                  cell->polygons_[i]->twincell_[2] = curpolyID;}
+              else if(cell->polygons_[i]->twincell_[2] == curpolyID){cell->polygons_[i]->twincell_[1] = cell->id_;
+                  cell->polygons_[i]->twincell_[3] = curpolyID;}
+
+              cell->polygons_[i]->cellcenter_[0] = totVec[0];
+              cell->polygons_[i]->cellcenter_[1] = totVec[1];
+              cell->polygons_[i]->cellcenter_[2] = totVec[2];
+
+              cells_[cell->id_]->cellcenter_[0]  = totVec[0];
+              cells_[cell->id_]->cellcenter_[1]  = totVec[1];
+              cells_[cell->id_]->cellcenter_[2]  = totVec[2];      
+         	 }
+        }
+
         simulation_time_ += dt_;
     }
 
-//    for (long int i = 0; i < cells_.size(); i++) {
-//        printf("%f\n", cells_[i]->volume_);
-//    }
 
     return 0;
 }

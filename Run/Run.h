@@ -66,7 +66,7 @@ class Run {
 
     double sigma12_;
     double sigma23_ = 0.5;
-    double sigma31_ = 2.;
+    double sigma31_ = 3.;
     double sigma14_;
     double sigma24_ = 0.0;
     double sigma34_ = 0.0;
