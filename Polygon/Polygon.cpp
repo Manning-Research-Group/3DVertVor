@@ -232,14 +232,15 @@ int Polygon::logEdges(std::string name) {
 int Polygon::SpringGon(double curtime) {
     int doneyet=0;
     if((type_==38||type_==94)){
+    //if((type_==10000)){
         for (int i = 0; i < edges_.size(); i++) {
             double tempx = 0.0;
             double tempy = 0.0;
             double tempz = 0.0;
             double templ = 0.0;
-            //double l0 = pow(run_->v01_,2/3);
-            //double l0 = 0.4;
-            double ks = 5.0;
+            int triggerdelam = 0;
+
+            double ks = 1.0;
             tempx = edges_[i]->vertices_[0]->position_[0]-edges_[i]->vertices_[1]->position_[0];
             tempy = edges_[i]->vertices_[0]->position_[1]-edges_[i]->vertices_[1]->position_[1];
             tempz = edges_[i]->vertices_[0]->position_[2]-edges_[i]->vertices_[1]->position_[2];
@@ -257,15 +258,40 @@ int Polygon::SpringGon(double curtime) {
             //if(curtime > 151 && curtime < 151 + run_->dt_){std::cout << templ << std::endl;}
             //if(curtime > 200 && curtime < 200 + run_->dt_){std::cout << templ << std::endl;}
 
-            //doneyet=1;}
-            //l0=templ;
+
+            for (int k = 0; k < 2; k++) {
+                for (int m = 0; m < edges_[i]->vertices_[k]->cells_.size(); m++) {
+                    if(edges_[i]->vertices_[k]->cells_[m]->type_==63){triggerdelam=1;}
+                }
+            }
+            
+
+            // for (auto cell : cells_) {
+            //     if(cell->type_==63){triggerdelam=1;}
+            // }
+
+            if(triggerdelam==1){
+                if(templ-run_->l0s_ > 0 && templ < 0.3){
+                //if(templ-run_->l0s_ > 0 && tempz < 0.3){
+                edges_[i]->vertices_[0]->velocity_[0] += run_->mu_ * ks*(templ-run_->l0s_) * (-tempx/templ);
+                edges_[i]->vertices_[1]->velocity_[0] += run_->mu_ * ks*(templ-run_->l0s_) * (tempx/templ);
+                edges_[i]->vertices_[0]->velocity_[1] += run_->mu_ * ks*(templ-run_->l0s_) * (-tempy/templ);
+                edges_[i]->vertices_[1]->velocity_[1] += run_->mu_ * ks*(templ-run_->l0s_) * (tempy/templ);
+                edges_[i]->vertices_[0]->velocity_[2] += run_->mu_ * ks*(templ-run_->l0s_) * (-tempz/templ);
+                edges_[i]->vertices_[1]->velocity_[2] += run_->mu_ * ks*(templ-run_->l0s_) * (tempz/templ);
+                }
+            }
+
+            else{
             edges_[i]->vertices_[0]->velocity_[0] += run_->mu_ * ks*(templ-run_->l0s_) * (-tempx/templ);
             edges_[i]->vertices_[1]->velocity_[0] += run_->mu_ * ks*(templ-run_->l0s_) * (tempx/templ);
             edges_[i]->vertices_[0]->velocity_[1] += run_->mu_ * ks*(templ-run_->l0s_) * (-tempy/templ);
             edges_[i]->vertices_[1]->velocity_[1] += run_->mu_ * ks*(templ-run_->l0s_) * (tempy/templ);
             edges_[i]->vertices_[0]->velocity_[2] += run_->mu_ * ks*(templ-run_->l0s_) * (-tempz/templ);
-            edges_[i]->vertices_[1]->velocity_[2] += run_->mu_ * ks*(templ-run_->l0s_) * (tempz/templ);
+            edges_[i]->vertices_[1]->velocity_[2] += run_->mu_ * ks*(templ-run_->l0s_) * (tempz/templ);    
+            }
         }
+
     }
 
 

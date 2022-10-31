@@ -90,12 +90,12 @@ int     Run::InitializeCellDelam() {
     for (auto cell : cells_) {
     	int check1=0;
     	int check2=0;
-    	if(check==0 && cell->type_==1)
+    	if(check==0 && cell->type_==7)
     	{
     		for (auto polygon : cell->polygons_) {
     			//2 and 4/16 for some reason
-    			if(polygon->type_==4 ){check1=1;}
-    			if(polygon->type_==2 || polygon->type_== 16){check2=1;}
+    			if(polygon->type_==7 || polygon->type_== 38){check1=1;}
+    			if(polygon->type_==22){check2=1;}
     		}
     		if(check1==1 && check2==1){
 		        cell->type_ = 63;
@@ -447,8 +447,9 @@ int Run::start() {
     	if(simulation_time_ > 25 && simulation_time_ < 25 + dt_){InitializeCellType();
             //vertices_[0]->updateSP(temperature_);
         }
-        //if(simulation_time_ > 100 && simulation_time_ < 100 + dt_){InitializeCellDelam();}
         if(simulation_time_ > 75 + dt_ && simulation_time_ < 75 + 2*dt_){InitalizeSolidifcation();}
+        if(simulation_time_ > 100 && simulation_time_ < 100 + dt_){InitializeCellDelam();}
+        
 
     	  //if(simulation_time_ > 100 + dt_ && simulation_time_ < 100 + 2*dt_){InitializePlacode();
           //placodeon_= 1;

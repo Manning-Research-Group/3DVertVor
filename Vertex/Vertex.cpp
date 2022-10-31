@@ -91,6 +91,16 @@ int Vertex::updateSP(double temperature, double temperaturebot, double currtime,
     //     }
     // }
 
+    if(currtime > 200){
+        double timeadjust = (currtime-200)/40;
+        for (auto cell : cells_) {
+            if(cell->type_==63){
+            motility_[2] = temperaturebot*timeadjust;
+                           
+            }
+        }
+    }
+
     if(placodeon == 1 && currtime > 200){
         for (auto cell : cells_) {
             if(cell->type_==7){
