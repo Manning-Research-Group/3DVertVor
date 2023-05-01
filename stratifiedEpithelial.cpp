@@ -85,8 +85,8 @@ int main(int argc, char** argv) {
 
   //const int SimulationsSteps = 5e6;
  // const int MovieFrameEachNSteps = 1e5;
-  const int SimulationsSteps = 50000;
-  const int MovieFrameEachNSteps = 1000;
+  const int SimulationsSteps = 510000;
+  const int MovieFrameEachNSteps = 500;
   //const int SimulationsSteps = 1e7;
   //const int MovieFrameEachNSteps = 100000;
   const double DeltaT = 0.01;  
@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
   type1.preferredSurface = 5.5;  //  S_0 
   //type1.preferredSurface = 5.5/pow(v1,2/3);  //  S_0 
   type1.angularDiffusion = 1;  // D_rz
-  type1.speed = 0.1;  // v_0
+  type1.speed = 1;  // v_0
   CellType type2; //Basal
   type2.volumeElasticity = 1;  //  K_V
   type2.preferredVolume = v2;  //  V_0
@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
   type2.preferredSurface = 5.5;  //  S_0 
   //type2.preferredSurface = 5.5/pow(v2,2/3);  //  S_0 
   type2.angularDiffusion = 1;  // D_r
-  type2.speed = 0.1;  // v_0
+  type2.speed = 1;  // v_0
   CellType type3; //Suprabasal
   type3.volumeElasticity = 1;  //  K_V
   type3.preferredVolume = v3;  //  V_0
@@ -120,12 +120,12 @@ int main(int argc, char** argv) {
   type3.preferredSurface = 5.5;  //  S_0 
   //type3.preferredSurface = 5.5/pow(v3,2/3);  //  S_0 
   type3.angularDiffusion = 1;  // D_r
-  type3.speed = 0.1;  // v_0
+  type3.speed = 1;  // v_0
   
   // set additional interfacial tension between type1 and type2 cells
-  type1.setAdditionalInterfacialTensionWith(type2, 0.03); //Basement Basal
-  type1.setAdditionalInterfacialTensionWith(type3, 1.0); //Basement Suprabasal
-  type2.setAdditionalInterfacialTensionWith(type3, 0.03); //Basal Suprabasal
+  type1.setAdditionalInterfacialTensionWith(type2, 0.0); //Basement Basal
+  type1.setAdditionalInterfacialTensionWith(type3, 0.01); //Basement Suprabasal
+  type2.setAdditionalInterfacialTensionWith(type3, 0.01); //Basal Suprabasal
 
   // type1.setAdditionalInterfacialTensionWith(type2, 0.1); //Basement Basal
   // type1.setAdditionalInterfacialTensionWith(type3, 1.0); //Basement Suprabasal

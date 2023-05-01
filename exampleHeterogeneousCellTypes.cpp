@@ -11,6 +11,7 @@
 
 #include "voro++/cell.hh"
 #include "voro++/voro++.hh"
+#include <math.h>
 
 #include <experimental/filesystem>
 #include <exception>
@@ -74,38 +75,51 @@ int main(int argc, char** argv) {
   // user input
   // ------------------------------------------
 
-  const int TotalCells = 512;
-  const int NumberOfCellsType1 = 256;
-  const int NumberOfCellsType2 = 256;
+  const int TotalCells = 1728; //1728
+  const int NumberOfCellsType1 = 864;
+  const int NumberOfCellsType2 = 864; //864
   //const int SimulationsSteps = 5e6;
   //const int MovieFrameEachNSteps = 100000;
-  //const int SimulationsSteps = 1e5;
-  //const int MovieFrameEachNSteps = 1e4;
-  const int SimulationsSteps = 50000;
-  const int MovieFrameEachNSteps = 1000;
- // const int SimulationsSteps = 1e5;
-  //const int MovieFrameEachNSteps = 1e4;
+  //const int SimulationsSteps = 5100;
+  //const int MovieFrameEachNSteps = 1;
+  //const int SimulationsSteps = 500100;
+  //const int MovieFrameEachNSteps = 100;
+
+  //From Preeti Paper
+  const int SimulationsSteps = 20015; //50001
+  const int MovieFrameEachNSteps = 2e3;
+
+  //const int SimulationsSteps = 500000;
+  //const int MovieFrameEachNSteps = 50000;
   const double DeltaT = 0.01;  
   const int maxNeighbors = 60;  // max neighbor each cell has
   
   // create cell types
   CellType type1;
   type1.volumeElasticity = 1;  //  K_V
-  type1.preferredVolume = 1.05;  //  V_0
+  type1.preferredVolume = 1.0;  //  V_0
   type1.surfaceElasticity = 1;  //  K_S
-  type1.preferredSurface = 5.5;  //  S_0 
+  type1.preferredSurface = 5.8;  //  S_0 
   type1.angularDiffusion = 1;  // D_rz
-  type1.speed = 0.1;  // v_0
+  type1.speed = 0.0;  // v_0
   CellType type2;
   type2.volumeElasticity = 1;  //  K_V
-  type2.preferredVolume = 0.95;  //  V_0
+  type2.preferredVolume = 1.0;  //  V_0
   type2.surfaceElasticity = 1;  //  K_S
-  type2.preferredSurface = 5.5;  //  S_0 
+  type2.preferredSurface = 5.8;  //  S_0 
   type2.angularDiffusion = 1;  // D_r
-  type2.speed = 0.1;  // v_0
+  type2.speed = 0.0;  // v_0
+  CellType type3;
+  type3.volumeElasticity = 1;  //  K_V
+  type3.preferredVolume = 1.0;  //  V_0
+  type3.surfaceElasticity = 1;  //  K_S
+  type3.preferredSurface = 5.8;  //  S_0 
+  type3.angularDiffusion = 1;  // D_r
+  type3.speed = 0.00;  // v_0  
   
   // set additional interfacial tension between type1 and type2 cells
-  type1.setAdditionalInterfacialTensionWith(type2, 0.03);
+  type1.setAdditionalInterfacialTensionWith(type2, 0.64);
+  type3.setAdditionalInterfacialTensionWith(type2, 0.64);
   // ^^^^^ For most purposes, this does the same as:
   //  type1.setAdditionalInterfacialTensionWith(type2, 1);
   //  type2.setAdditionalInterfacialTensionWith(type1, 1);
@@ -154,14 +168,32 @@ int main(int argc, char** argv) {
 
   // loop in time to stabilize system before v_0 is added to any of the cells
    for(int i=0; i<SimulationsSteps; ++i) {
-      
+      if(i==7500){
+        type1.speed = 0.00;
+        type2.speed = 0.00;
+      }
+      if(i==20000){
+        int findcell = 0;
+         for(Cell *c : t.cells()) {
+            if(c->type()==&type1 && findcell==0 && c->position().z()>5) {
+              findcell = 1;
+              c->setType(type3);
+              c->setcellType(2);
+            }
+            else if(c->type()==&type1){
+              c->setcellType(0);
+            }    
+            else{c->setcellType(1);}
+      }}
+
+
       // updates of the Voronoi tesselation
       t.computeTopologyAndGeometry();
       t.computeEnergyDerivatives();
       
-      if( (i%MovieFrameEachNSteps==0) && outputVtkVis ) {
-
-         std::cout << "t = " << t.time() << " / " << DeltaT*SimulationsSteps << std::endl;
+      //if( (i%MovieFrameEachNSteps==0) && outputVtkVis ) {
+      if( (i>2e4 || i%MovieFrameEachNSteps==0) && outputVtkVis ) {
+         std::cout << "t = " << t.time() << " / " << DeltaT*SimulationsSteps << " | " << sqrt(t.totalCellForceNormSq()/(3*t.cells().size()))  << " | " <<  sqrt(t.totalCellForceNormSq()) << std::endl;
          
          // Paraview file name
          char filename[256]; 
@@ -223,6 +255,13 @@ int main(int argc, char** argv) {
         cellPeriodicity->SetNumberOfTuples(nCells);
         cellPeriodicity->SetName("cellPeriodicity");
 
+         // cell velocity
+        // +1 indicates over positive side once; -1 indicates over negative side once
+        vtkSmartPointer<vtkDoubleArray> cellSP = vtkSmartPointer<vtkDoubleArray>::New();
+        cellSP->SetNumberOfComponents(3);
+        cellSP->SetNumberOfTuples(nCells);
+        cellSP->SetName("cellSP");
+
         // cell neighbors
         // When numberOfFacesOfCell exceeds maxNeighbors, the cellNeighbor vtkDataArray
         // becomes invalid.
@@ -255,6 +294,12 @@ int main(int argc, char** argv) {
          cellEllipsoidCaxis->SetNumberOfTuples(nCells);
          cellEllipsoidCaxis->SetName("cellEllipsoidCaxis");
 
+         // cell ellipsoid principal a-axis orientation
+         vtkSmartPointer<vtkDoubleArray> cellorient = vtkSmartPointer<vtkDoubleArray>::New();
+         cellorient->SetNumberOfComponents(1);
+         cellorient->SetNumberOfTuples(nCells);
+         cellorient->SetName("cellOrientation");
+
          //Interfacial area between basal and basement
          vtkSmartPointer<vtkDoubleArray> InterfacialCellArea12 = vtkSmartPointer<vtkDoubleArray>::New();
          InterfacialCellArea12->SetNumberOfComponents(maxNeighbors);
@@ -283,6 +328,9 @@ int main(int argc, char** argv) {
           }
           else if( c->type()==&type2 ) {
             cellTypeInt = 1;
+          }
+          else if( c->type()==&type3 ) {
+            cellTypeInt = 2;
           }
 
            cellCounter++;
@@ -347,7 +395,7 @@ int main(int argc, char** argv) {
             double tempy;
             // loop through faces of basal cells
             //std::cout <<  cellTypeInt << std::endl;
-            if(cellTypeInt==1){
+            if(cellTypeInt==1 or cellTypeInt==0){
               for(const DirectedFace *f : c->faces()) {
                     if(f->otherCell()->type()==&type1) {
                       othertype = 0;
@@ -358,17 +406,17 @@ int main(int argc, char** argv) {
                   
                   //std::cout <<  cellTypeInt << " "<< othertype << std::endl;
                   
-
-                  if(othertype!=cellTypeInt) {
-                      interfacialArea = f->area().norm();
+				  interfacialArea = f->area().norm();
+				  interfacialAreaArray12[count12]=interfacialArea;
+                  if(othertype!=cellTypeInt) {                     
                       cellvols = c->volume();
                       //std::cout <<  interfacialArea << std::endl;
                       tempVec2[0] = f->otherCell()->position().x();
                       tempVec2[1] = f->otherCell()->position().y();
-                      tempVec2[2] = f->otherCell()->position().z();
+                      tempVec2[2] = f->otherCell()->position().z();                
                       if(othertype==0)
                       {
-                        interfacialAreaArray12[count12]=interfacialArea;
+                        
                         
                         if(interfacialArea>0.5){
                         tempy=tempVec2[1]-tempVec1[1];
@@ -381,10 +429,10 @@ int main(int argc, char** argv) {
                         }
                         RegisterArray12[count12]=1-pow(pow(tempx,2)+pow(tempy,2),0.5)/(pow(cellvols,1/3));
                         }
-                        count12 +=1;
+                        
                       }
                   }
-              }       
+              count12 +=1;}       
             }
 
 
@@ -396,6 +444,8 @@ int main(int argc, char** argv) {
             cellType->InsertValue(cellCounter-1, cellTypeInt);
 
             double tempVec[3];
+            double temporient;
+            double tempSPP[3];
             tempVec[0] = c->position().x();
             tempVec[1] = c->position().y();
             tempVec[2] = c->position().z();
@@ -407,6 +457,11 @@ int main(int argc, char** argv) {
             InterfacialCellArea12->InsertTupleValue(cellCounter-1,interfacialAreaArray12);
             cellRegister12->InsertTupleValue(cellCounter-1,RegisterArray12);
            
+            tempSPP[0] = c->force().x();
+            tempSPP[1] = c->force().y();
+            tempSPP[2] = c->force().z();
+            cellSP->InsertTuple(cellCounter-1, tempSPP);
+
             EllipsoidByUnitPointMassPolyhedron fittedCell = 
                c->fitEllipsoidByUnitPointMassPolyhedron();
             tempVec[0] = fittedCell.a();
@@ -416,6 +471,9 @@ int main(int argc, char** argv) {
             tempVec[0] = fittedCell.aAxis().x();
             tempVec[1] = fittedCell.aAxis().y();
             tempVec[2] = fittedCell.aAxis().z();
+
+            temporient = acos(abs(tempVec[2]));
+            cellorient->InsertValue(cellCounter-1, temporient); 
             cellEllipsoidAaxis->InsertTuple(cellCounter-1,tempVec);
             tempVec[0] = fittedCell.bAxis().x();
             tempVec[1] = fittedCell.bAxis().y();
@@ -425,7 +483,10 @@ int main(int argc, char** argv) {
             tempVec[1] = fittedCell.cAxis().y();
             tempVec[2] = fittedCell.cAxis().z();
             cellEllipsoidCaxis->InsertTuple(cellCounter-1,tempVec);
-            
+
+              
+            uGrid->GetCellData()->AddArray(cellSP); 
+            uGrid->GetCellData()->AddArray(cellorient);              
             uGrid->GetCellData()->AddArray(cellID);
             uGrid->GetCellData()->AddArray(cellType);
             uGrid->GetCellData()->AddArray(cellPosition);
@@ -442,7 +503,7 @@ int main(int argc, char** argv) {
             
          } // end cell loop
          
-         std::cout << "Total number of vertices: " << numberTotalVerticesWithDups << std::endl;
+         //std::cout << "Total number of vertices: " << numberTotalVerticesWithDups << std::endl;
 
          // add time stamp to vtk data set
          vtkTimeArray->InsertValue(0,t.time());
