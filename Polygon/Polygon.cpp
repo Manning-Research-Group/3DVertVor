@@ -322,13 +322,13 @@ int Polygon::UpDateTension() {
     double curForceY = 0;
     double curForceZ = 0;
     for (int i = 0; i < vertices_.size(); i++) { 
-        curForceX += (vertices_[i]->springforces_[0]);
-        curForceY += (vertices_[i]->springforces_[1]);
-        curForceZ += (vertices_[i]->springforces_[2]);
+        //curForceX += (vertices_[i]->springforces_[0]);
+        //curForceY += (vertices_[i]->springforces_[1]);
+        //curForceZ += (vertices_[i]->springforces_[2]);
 
-        //curForceX += (vertices_[i]->velocity_[0]);
-        //curForceY += (vertices_[i]->velocity_[1]);
-        //curForceZ += (vertices_[i]->velocity_[2]);
+        curForceX += (vertices_[i]->velocity_[0]);
+        curForceY += (vertices_[i]->velocity_[1]);
+        curForceZ += (vertices_[i]->velocity_[2]);
 
         // if(type_==94){
         //     cout << i << endl;

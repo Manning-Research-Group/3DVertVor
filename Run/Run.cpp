@@ -90,12 +90,14 @@ int     Run::InitializeCellDelam() {
     for (auto cell : cells_) {
     	int check1=0;
     	int check2=0;
-    	if(check==0 && cell->type_==7)
+    	if(check==0)
     	{
     		for (auto polygon : cell->polygons_) {
     			//2 and 4/16 for some reason
-    			if(polygon->type_==7 || polygon->type_== 38){check1=1;}
-    			if(polygon->type_==22){check2=1;}
+    			//if(polygon->type_==7 || polygon->type_== 38){check1=1;}
+          if(polygon->type_==7){check1=1;}
+    			if(polygon->type_==0){check2=1;}
+          //if(polygon->type_==22){check2=1;}
     		}
     		if(check1==1 && check2==1){
 		        cell->type_ = 63;
@@ -233,8 +235,8 @@ int     Run::InitializeCellType() {
     type1count = NCell_/2;
     type2count = NCell_/2;
     int randompos = 0;
-    int topbot =0;
-    int stratified = 1;
+    int topbot =1;
+    int stratified = 0; //ECM network
     int nbasment = 0;
     int nbasal = 0;
     int nsupra = 0;
@@ -405,7 +407,9 @@ int Run::start() {
     printf("E_volume    ");
     printf("E_interface ");
     //printf("Type of cell 0");
-    printf("Energy      \n");
+    printf("Energy ");
+    printf("Average Force ");
+    printf("Max Force      \n");
 
 
       // ------------------------------------------
@@ -454,10 +458,13 @@ int Run::start() {
     	if(simulation_time_ > 25 && simulation_time_ < 25 + dt_){InitializeCellType();
             //vertices_[0]->updateSP(temperature_);
         }
+       if(simulation_time_ > 75 && simulation_time_ < 75 + dt_){temperature_ = 0.0;}
        
 
-        if(simulation_time_ > 75 + dt_ && simulation_time_ < 75 + 2*dt_){InitalizeSolidifcation();}
-        if(simulation_time_ > 100 && simulation_time_ < 100 + dt_){InitializeCellDelam();}
+        //if(simulation_time_ > 75 + dt_ && simulation_time_ < 75 + 2*dt_){InitalizeSolidifcation();}
+        if(simulation_time_ > 200 && simulation_time_ < 200 + dt_){
+          //temperature_=0.0;
+          InitializeCellDelam();}
         
 
     	  //if(simulation_time_ > 100 + dt_ && simulation_time_ < 100 + 2*dt_){InitializePlacode();
@@ -490,20 +497,33 @@ int Run::start() {
 
 
         // log to screen
-        if (simulation_time_ - t_start_ + t_roundError  > count_log_ * log_period_) {
+        if (simulation_time_ - t_start_ + t_roundError  > count_log_ * log_period_ || simulation_time_>200) {
             double demixing = 0.;
             double countcells = 0.;
 
+            double totalforce = 0.0;
+            double maxforce = 0.0;
+            for (long int i = 0; i < vertices_.size(); i++) {
+              vertices_[i]->magForce();
+              totalforce += vertices_[i]->netforce_;
+              if(vertices_[i]->netforce_>maxforce){
+                maxforce = vertices_[i]->netforce_;
+              }
+            }
+            totalforce = totalforce/vertices_.size();
+
             volume_->updateEnergy();
             interface_->updateEnergy();
-            printf("%-12.2f%-12.3f%-12.3f%-12ld%-12ld%-12.6f%-12.6f%-12.6f\n", simulation_time_,
+            printf("%-12.2f%-12.3f%-12.3f%-12ld%-12ld%-12.6f%-12.6f%-12.6f%-12.6f%-12.6f\n", simulation_time_,
                    (chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start).count())/1.0e6,
                    volume_->totalVolume_,
                    reconnection_->count_IH_,
                    reconnection_->count_HI_,
                    volume_->energy_,
                    interface_->energy_,
-                   volume_->energy_+interface_->energy_);
+                   volume_->energy_+interface_->energy_,
+                   totalforce,
+                   maxforce);
             start = chrono::steady_clock::now();
             reconnection_->count_IH_ = 0;
             reconnection_->count_HI_ = 0;
@@ -1237,9 +1257,6 @@ int     Run::updateVerticesVelocity() {
     //     polygons_[i]->ResetTension();}
     for (long int i = 0; i < vertices_.size(); i++) {
         vertices_[i]->resetTensions();}
-    for (long int i = 0; i < cells_.size(); i++) {
-      cells_[i]->updateSpringArea();
-    }
     for (long int i = 0; i < polygons_.size(); i++) {
         polygons_[i]->SpringGon(simulation_time_);}
 
@@ -1314,8 +1331,10 @@ int     Run::updateVerticesPosition() {
         //cell->cellDirectors_[1] += Randnormal(NoiseStdDev)/sin(cell->cellDirectors_[0]);
     }
 
-     for (long int i = 0; i < polygons_.size(); i++) {
-         polygons_[i]->UpDateTension();}
+     //for (long int i = 0; i < polygons_.size(); i++) {
+     //    polygons_[i]->UpDateTension();}
+     for (long int i = 0; i < cells_.size(); i++) {
+        cells_[i]->updateAverageForce();}
 
     for (long int i = 0; i < vertices_.size(); i++) {
     	vertices_[i]->updateSP(temperature_,temperaturebot_,simulation_time_,placodeon_);

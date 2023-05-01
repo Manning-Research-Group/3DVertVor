@@ -103,9 +103,9 @@ int Vertex::updateSP(double temperature, double temperaturebot, double currtime,
     	int bm = 0;
         int suprabasal = 0;
 
-    	double vraise=0.01;
+    	//double vraise=0.01;
     	//double vraise=1e-4;
-        //double vraise=run_->temperaturebot_;
+        double vraise=run_->temperaturebot_;
         for (auto cell : cells_) {
 
         	// for (auto polygon : cell->polygons_) {
@@ -121,8 +121,8 @@ int Vertex::updateSP(double temperature, double temperaturebot, double currtime,
             if(int(currtime/0.005)%100!=0)
                 {
                 velocity_[2] = 0;
-                //motility_[2] = vraise/0.01;
-                motility_[2] = vraise;
+                motility_[2] = vraise/0.01;
+                //motility_[2] = vraise;
                 }
 
             }
