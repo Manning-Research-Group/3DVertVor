@@ -29,6 +29,8 @@ public:
   
   // cell type
   void setType(const CellType &parameters) { _type = &parameters; }
+  int _cellstype;
+  void setcellType(const int &ct) { _cellstype = ct; }
   const CellType *type() const { return _type; }
   
   // topology

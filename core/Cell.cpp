@@ -349,7 +349,13 @@ void Cell::timeStep(const double deltaT) {
     deltaPosition += force();
   }
   deltaPosition *= deltaT;
-  _position += deltaPosition;
+  CellType type3;
+  if(_cellstype==2){
+    //_position += 1e-2*Vector3D(0, 0, 1)*deltaT;
+    _position += 1e-4*Vector3D(0, 0, 1);
+  }
+  else{_position += deltaPosition;}
+  
   _speed = deltaPosition/deltaT;
 //  if(_position.x()!=_position.x()) {
 //    std::cerr << "Cell::timeStep:  position is nan!" << std::endl;
