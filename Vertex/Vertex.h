@@ -19,6 +19,8 @@ public:
     double interfaceForce_[3];
     double velocity_[3];
     double motility_[3];
+    double springforces_[3];
+    double netforce_;
     std::vector<Edge *> edges_;
     std::vector<Cell *> cells_;
     explicit Vertex(Run *, long int);
@@ -26,6 +28,9 @@ public:
     int logCells(std::string);
     int logEdges(std::string);
     int updateSP(double temperature, double temperaturebot, double currtime, int placodeon);
+    int updateVpos(double currtime);
+    int resetTensions();
+    int magForce();
 private:
     Run * run_;
 };

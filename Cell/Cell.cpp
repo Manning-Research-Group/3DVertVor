@@ -308,3 +308,42 @@ int Cell::logPolygons(std::string name) {
 
     return 0;
 }
+
+int Cell::updateSpringArea() {
+    // compute cell volume
+    springArea_ = 0.0;
+    double tempSpring = 0.0;
+    double totalArea = 0.0;
+    if(type_ ==63){
+        for (auto polygon : polygons_) {
+            totalArea += polygon->area_;
+            if(polygon->type_==94){
+                tempSpring += polygon->area_;
+            }
+        }
+    springArea_ = tempSpring;
+    }
+}
+
+int Cell::updateAverageForce(){
+    double curForceX = 0;
+    double curForceY = 0;
+    double curForceZ = 0;
+    double totalverts = 0.0;
+
+        for (auto polygon : polygons_) {
+            for (int i = 0; i < polygon->vertices_.size(); i++) {
+                curForceX += (polygon->vertices_[i]->velocity_[0]);
+                curForceY += (polygon->vertices_[i]->velocity_[1]);
+                curForceZ += (polygon->vertices_[i]->velocity_[2]);
+                totalverts += 1.0;
+        }
+    }
+
+    for (auto polygon : polygons_) {
+        polygon->springtension_[0] = curForceX/totalverts;
+        polygon->springtension_[1] = curForceY/totalverts;
+        polygon->springtension_[2] = curForceZ/totalverts;
+    }
+}
+

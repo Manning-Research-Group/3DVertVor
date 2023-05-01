@@ -230,8 +230,8 @@ int     Run::InitalizeSolidifcation() {
 int     Run::InitializeCellType() {
     //type1count = NCell_/2;
     //type2count = NCell_-type1count;
-    type1count = 256;
-    type2count = 256;
+    type1count = NCell_/2;
+    type2count = NCell_/2;
     int randompos = 0;
     int topbot =0;
     int stratified = 1;
@@ -250,7 +250,7 @@ int     Run::InitializeCellType() {
                 type1count -=1;
             }
             else{
-                cell->type_ = 1;
+                cell->type_ = 7;
                 cell->color_ = 1;
                 type2count -=1;           
             }
@@ -344,7 +344,7 @@ int     Run::InitializeCellType() {
                     }
                     else
                     {
-                        cell->type_ = 1;     
+                        cell->type_ = 7;     
                         cell->color_ = 1;      
                     }                 
                 }
@@ -364,6 +364,11 @@ int     Run::InitializeCellType() {
           cell->s0_=s03_;
           cell->v0_=v03_;
           }
+    if(cell->type_ == 7){
+      cell->s0_=s04_;
+      //cell->s0_=6.65;
+      cell->v0_=v04_;
+      }        
         }
     }
 
@@ -444,9 +449,13 @@ int Run::start() {
         // After letting system iniatilize apply actual cell types:
     	//if(simulation_time_ > log_period_ + dt_ && simulation_time_ < log_period_ + 2*dt_){InitializeCellType();}
     	//if(simulation_time_ > 2*log_period_ + dt_ && simulation_time_ < 2*log_period_ + 2*dt_){InitializeCellDelam();}
+    	
+
     	if(simulation_time_ > 25 && simulation_time_ < 25 + dt_){InitializeCellType();
             //vertices_[0]->updateSP(temperature_);
         }
+       
+
         if(simulation_time_ > 75 + dt_ && simulation_time_ < 75 + 2*dt_){InitalizeSolidifcation();}
         if(simulation_time_ > 100 && simulation_time_ < 100 + dt_){InitializeCellDelam();}
         
@@ -576,23 +585,29 @@ int Run::start() {
              polyArea->SetNumberOfTuples(polygons_.size());
              polyArea->SetName("polyArea");
 
-	         //cell registration general
-	         vtkSmartPointer<vtkDoubleArray> cellRegister12 = vtkSmartPointer<vtkDoubleArray>::New();
-	         cellRegister12->SetNumberOfComponents(1);
-	         cellRegister12->SetNumberOfTuples(polygons_.size());
-	         cellRegister12->SetName("cellRegister12");
+             // Polygon Force
+             vtkSmartPointer<vtkDoubleArray> polyForce = vtkSmartPointer<vtkDoubleArray>::New();
+             polyForce->SetNumberOfComponents(3);
+             polyForce->SetNumberOfTuples(polygons_.size());
+             polyForce->SetName("polyForce");
 
-             // cell ellipsoid principal a-axis (major)
-             vtkSmartPointer<vtkDoubleArray> cellSP = vtkSmartPointer<vtkDoubleArray>::New();
-             cellSP->SetNumberOfComponents(3);
-             cellSP->SetNumberOfTuples(polygons_.size());
-             cellSP->SetName("cellSP");
+	         // //cell registration general
+	         // vtkSmartPointer<vtkDoubleArray> cellRegister12 = vtkSmartPointer<vtkDoubleArray>::New();
+	         // cellRegister12->SetNumberOfComponents(1);
+	         // cellRegister12->SetNumberOfTuples(polygons_.size());
+	         // cellRegister12->SetName("cellRegister12");
 
-             // cell ellipsoid principal a-axis (major)
-             vtkSmartPointer<vtkDoubleArray> cellSPa = vtkSmartPointer<vtkDoubleArray>::New();
-             cellSPa->SetNumberOfComponents(2);
-             cellSPa->SetNumberOfTuples(polygons_.size());
-             cellSPa->SetName("cellSPa");
+          //    // cell ellipsoid principal a-axis (major)
+          //    vtkSmartPointer<vtkDoubleArray> cellSP = vtkSmartPointer<vtkDoubleArray>::New();
+          //    cellSP->SetNumberOfComponents(3);
+          //    cellSP->SetNumberOfTuples(polygons_.size());
+          //    cellSP->SetName("cellSP");
+
+          //    // cell ellipsoid principal a-axis (major)
+          //    vtkSmartPointer<vtkDoubleArray> cellSPa = vtkSmartPointer<vtkDoubleArray>::New();
+          //    cellSPa->SetNumberOfComponents(2);
+          //    cellSPa->SetNumberOfTuples(polygons_.size());
+          //    cellSPa->SetName("cellSPa");
 
              // cell ellipsoid principal a-axis (major)
              vtkSmartPointer<vtkDoubleArray> cellEllipsoidAaxis = vtkSmartPointer<vtkDoubleArray>::New();
@@ -782,11 +797,14 @@ int Run::start() {
 	            polyType->InsertValue(polyCounter-1, cell->polygons_[i]->type_);
 
               polyArea->InsertValue(polyCounter-1, cell->polygons_[i]->area_);
+              polyForce->InsertTuple(polyCounter-1, cell->polygons_[i]->springtension_);
+
 
 
 	            uGrid->GetCellData()->AddArray(polyType);
 	            uGrid->GetCellData()->AddArray(polyID);
               uGrid->GetCellData()->AddArray(polyArea);
+              uGrid->GetCellData()->AddArray(polyForce);
               }
               
 
@@ -822,8 +840,8 @@ int Run::start() {
               tempangles[0] = cell->cellDirectors_[0];
               tempangles[1] = cell->cellDirectors_[1];
 
-              cellSP->InsertTuple(polyCounter2-1, tempdirect);
-              cellSPa->InsertTuple(polyCounter2-1, tempangles);
+              //cellSP->InsertTuple(polyCounter2-1, tempdirect);
+              //cellSPa->InsertTuple(polyCounter2-1, tempangles);
               cellCenter->InsertTuple(polyCounter2-1, totVec); 
               cellID->InsertValue(polyCounter2-1, curcellID);
               cellArea->InsertValue(polyCounter2-1, totArea);
@@ -832,8 +850,8 @@ int Run::start() {
               cellcolour->InsertValue(polyCounter2-1, cell->color_);
 
               uGrid->GetCellData()->AddArray(cellID);
-              uGrid->GetCellData()->AddArray(cellSP);
-              uGrid->GetCellData()->AddArray(cellSPa);
+              //uGrid->GetCellData()->AddArray(cellSP);
+              //uGrid->GetCellData()->AddArray(cellSPa);
               uGrid->GetCellData()->AddArray(cellCenter);
               uGrid->GetCellData()->AddArray(cellArea);
               uGrid->GetCellData()->AddArray(cellVol);
@@ -957,8 +975,8 @@ int Run::start() {
                 cellani->InsertValue(polyCounter3-1, tempani);   
                 uGrid->GetCellData()->AddArray(cellani);   
 
-                cellRegister12->InsertValue(polyCounter3-1, tempreg);
-                uGrid->GetCellData()->AddArray(cellRegister12);
+                //cellRegister12->InsertValue(polyCounter3-1, tempreg);
+                //uGrid->GetCellData()->AddArray(cellRegister12);
 
                 tempneighs[0] = cell->polygons_[i]->twincell_[0];
                 tempneighs[1] = cell->polygons_[i]->twincell_[1];
@@ -1215,8 +1233,16 @@ int     Run::updateVerticesVelocity() {
         }
     }
     //Account for spring verticies
+    // for (long int i = 0; i < polygons_.size(); i++) {
+    //     polygons_[i]->ResetTension();}
+    for (long int i = 0; i < vertices_.size(); i++) {
+        vertices_[i]->resetTensions();}
+    for (long int i = 0; i < cells_.size(); i++) {
+      cells_[i]->updateSpringArea();
+    }
     for (long int i = 0; i < polygons_.size(); i++) {
         polygons_[i]->SpringGon(simulation_time_);}
+
     
     // remove drift velocity
     double averageVelocity[3] = {0., 0., 0.};
@@ -1288,12 +1314,18 @@ int     Run::updateVerticesPosition() {
         //cell->cellDirectors_[1] += Randnormal(NoiseStdDev)/sin(cell->cellDirectors_[0]);
     }
 
+     for (long int i = 0; i < polygons_.size(); i++) {
+         polygons_[i]->UpDateTension();}
+
     for (long int i = 0; i < vertices_.size(); i++) {
     	vertices_[i]->updateSP(temperature_,temperaturebot_,simulation_time_,placodeon_);
+    	//vertices_[i]->updateVpos(simulation_time_);
+
         for (int m = 0; m < 3; m++) {
-            //vertices_[i]->position_[m] = vertices_[i]->position_[m] + vertices_[i]->velocity_[m] * dt_ + cR*ndist(generator);
-            vertices_[i]->position_[m] = vertices_[i]->position_[m] + vertices_[i]->velocity_[m] * dt_ + dt_ * vertices_[i]->motility_[m];
+           //vertices_[i]->position_[m] = vertices_[i]->position_[m] + vertices_[i]->velocity_[m] * dt_ + cR*ndist(generator);
+           vertices_[i]->position_[m] = vertices_[i]->position_[m] + vertices_[i]->velocity_[m] * dt_ + dt_ * vertices_[i]->motility_[m];
         }
+
         resetPosition(vertices_[i]->position_);
     }
 

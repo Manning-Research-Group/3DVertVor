@@ -20,6 +20,7 @@ public:
     double interfaceForce_[3];
     double cellcenter_[3];
     double normvector_[3];
+    double springtension_[3];
     double sigma_;
     int twincell_[4];
     int type_;
@@ -37,6 +38,8 @@ public:
     int expand(Edge *);
     int logEdges(std::string);
     int SpringGon(double curtime);
+    int UpDateTension();
+    int ResetTension();
 private:
     Run * run_;
 };

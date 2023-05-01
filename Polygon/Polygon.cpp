@@ -24,6 +24,7 @@ Polygon::Polygon(Run * run, long int id) {
     for (int i = 0; i < 3; i++) {
         center_[i] = 0.;
         volumeForce_[i]  = 0.;
+        springtension_[i] = 0.;
         interfaceForce_[i]  = 0.;
     }
     area_ = 0.;
@@ -238,7 +239,9 @@ int Polygon::SpringGon(double curtime) {
             double tempy = 0.0;
             double tempz = 0.0;
             double templ = 0.0;
+            double tempforce = 0.0;
             int triggerdelam = 0;
+            double tempSpringArea = 1.0;
 
             double ks = 1.0;
             tempx = edges_[i]->vertices_[0]->position_[0]-edges_[i]->vertices_[1]->position_[0];
@@ -258,27 +261,34 @@ int Polygon::SpringGon(double curtime) {
             //if(curtime > 151 && curtime < 151 + run_->dt_){std::cout << templ << std::endl;}
             //if(curtime > 200 && curtime < 200 + run_->dt_){std::cout << templ << std::endl;}
 
-
             for (int k = 0; k < 2; k++) {
                 for (int m = 0; m < edges_[i]->vertices_[k]->cells_.size(); m++) {
-                    if(edges_[i]->vertices_[k]->cells_[m]->type_==63){triggerdelam=1;}
+                    if(edges_[i]->vertices_[k]->cells_[m]->type_==63){triggerdelam=1;
+                    tempSpringArea=edges_[i]->vertices_[k]->cells_[m]->springArea_;
+                //cout << tempSpringArea << endl;
+                }
                 }
             }
-            
 
-            // for (auto cell : cells_) {
-            //     if(cell->type_==63){triggerdelam=1;}
-            // }
-
+            tempforce = run_->mu_ * ks*(templ-run_->l0s_);
             if(triggerdelam==1){
-                if(templ-run_->l0s_ > 0 && templ < 0.3){
-                //if(templ-run_->l0s_ > 0 && tempz < 0.3){
+                //if(templ-run_->l0s_ > 0 && templ < 0.3){
+                if(templ-run_->l0s_ > 0 && tempforce < 0.5*(tempSpringArea)){
                 edges_[i]->vertices_[0]->velocity_[0] += run_->mu_ * ks*(templ-run_->l0s_) * (-tempx/templ);
                 edges_[i]->vertices_[1]->velocity_[0] += run_->mu_ * ks*(templ-run_->l0s_) * (tempx/templ);
                 edges_[i]->vertices_[0]->velocity_[1] += run_->mu_ * ks*(templ-run_->l0s_) * (-tempy/templ);
                 edges_[i]->vertices_[1]->velocity_[1] += run_->mu_ * ks*(templ-run_->l0s_) * (tempy/templ);
                 edges_[i]->vertices_[0]->velocity_[2] += run_->mu_ * ks*(templ-run_->l0s_) * (-tempz/templ);
                 edges_[i]->vertices_[1]->velocity_[2] += run_->mu_ * ks*(templ-run_->l0s_) * (tempz/templ);
+
+                edges_[i]->vertices_[0]->springforces_[0] += run_->mu_ * ks*(templ-run_->l0s_) * (-tempx/templ);
+                edges_[i]->vertices_[1]->springforces_[0] += run_->mu_ * ks*(templ-run_->l0s_) * (tempx/templ);
+                edges_[i]->vertices_[0]->springforces_[1] += run_->mu_ * ks*(templ-run_->l0s_) * (-tempy/templ);
+                edges_[i]->vertices_[1]->springforces_[1] += run_->mu_ * ks*(templ-run_->l0s_) * (tempy/templ);
+                edges_[i]->vertices_[0]->springforces_[2] += run_->mu_ * ks*(templ-run_->l0s_) * (-tempz/templ);
+                edges_[i]->vertices_[1]->springforces_[2] += run_->mu_ * ks*(templ-run_->l0s_) * (tempz/templ);
+
+
                 }
             }
 
@@ -289,11 +299,56 @@ int Polygon::SpringGon(double curtime) {
             edges_[i]->vertices_[1]->velocity_[1] += run_->mu_ * ks*(templ-run_->l0s_) * (tempy/templ);
             edges_[i]->vertices_[0]->velocity_[2] += run_->mu_ * ks*(templ-run_->l0s_) * (-tempz/templ);
             edges_[i]->vertices_[1]->velocity_[2] += run_->mu_ * ks*(templ-run_->l0s_) * (tempz/templ);    
+
+            edges_[i]->vertices_[0]->springforces_[0] += run_->mu_ * ks*(templ-run_->l0s_) * (-tempx/templ);
+            edges_[i]->vertices_[1]->springforces_[0] += run_->mu_ * ks*(templ-run_->l0s_) * (tempx/templ);
+            edges_[i]->vertices_[0]->springforces_[1] += run_->mu_ * ks*(templ-run_->l0s_) * (-tempy/templ);
+            edges_[i]->vertices_[1]->springforces_[1] += run_->mu_ * ks*(templ-run_->l0s_) * (tempy/templ);
+            edges_[i]->vertices_[0]->springforces_[2] += run_->mu_ * ks*(templ-run_->l0s_) * (-tempz/templ);
+            edges_[i]->vertices_[1]->springforces_[2] += run_->mu_ * ks*(templ-run_->l0s_) * (tempz/templ);
+
             }
         }
 
     }
 
+
+    return 0;
+}
+
+int Polygon::UpDateTension() {
+
+    double curForceX = 0;
+    double curForceY = 0;
+    double curForceZ = 0;
+    for (int i = 0; i < vertices_.size(); i++) { 
+        curForceX += (vertices_[i]->springforces_[0]);
+        curForceY += (vertices_[i]->springforces_[1]);
+        curForceZ += (vertices_[i]->springforces_[2]);
+
+        //curForceX += (vertices_[i]->velocity_[0]);
+        //curForceY += (vertices_[i]->velocity_[1]);
+        //curForceZ += (vertices_[i]->velocity_[2]);
+
+        // if(type_==94){
+        //     cout << i << endl;
+        //     cout << vertices_[i]->springforces_[2] << endl;
+        //     cout << curForceZ << endl;
+        //}
+    }
+
+    springtension_[0] = curForceX;
+    springtension_[1] = curForceY;
+    springtension_[2] = curForceZ;
+
+    return 0;
+}
+
+int Polygon::ResetTension() {
+
+    springtension_[0] = 0;
+    springtension_[1] = 0;
+    springtension_[2] = 0;
 
     return 0;
 }

@@ -19,6 +19,7 @@ public:
     double shapeIndex_;
     double cellcenter_[3];
     double cellDirectors_[2];
+    double springArea_;
     int type_;
     int color_;
     std::vector<Polygon *> polygons_;
@@ -28,6 +29,8 @@ public:
 
     int updatePolygonDirections();
     int updateVolume();
+    int updateSpringArea();
+    int updateAverageForce();
     int logPolygons(std::string);
 private:
     Run * run_;
