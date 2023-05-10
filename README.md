@@ -1,7 +1,7 @@
 This code was originally developed by Matthias Merkel and described below. There have been minor alterations to the 3D Voronoi code but it primarily remains unchanged from its original state.
 
 With minor changes to the following:  <br />
-Core: Cell.h / Cell.cpp  <br /
+Core: Cell.h / Cell.cpp 
 
 # 3D-Voronoi
 If this software is being used for a scientific publication, the user is encouraged to cite the following publication:
