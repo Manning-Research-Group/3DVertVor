@@ -1,3 +1,8 @@
+This code was originally developed by Matthias Merkel and described below. There have been minor alterations to the 3D Voronoi code but it primarily remains unchanged from its original state.
+
+With minor changes to the following:  <br />
+Core: Cell.h / Cell.cpp  <br /
+
 # 3D-Voronoi
 If this software is being used for a scientific publication, the user is encouraged to cite the following publication:
 > Matthias Merkel, M. Lisa Manning, "A geometrically controlled rigidity transition in a model for confluent 3D tissues", _New Journal of Physics_ **20**, p. 022002 (2018).
